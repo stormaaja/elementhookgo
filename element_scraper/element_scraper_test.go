@@ -1,8 +1,8 @@
-package element_scraper
+package elementscraper
 
 import (
-  "testing"
-  "strings"
+	"strings"
+	"testing"
 )
 
 const WebPage = `
@@ -43,17 +43,46 @@ const WebPage = `
 `
 
 func TestFindElement(t *testing.T) {
-  reader := strings.NewReader(WebPage)
-  elementScraper, err := NewElementScraperFromReader(reader)
-  element := elementScraper.Find(".todayLunch") // "table"
-  if err != nil {
-    t.Error("Error:", err)
-  } else {
-    if !strings.Contains(element, "Chicken Vindaloo") {
-      t.Error("Element content is not correct")
-    }
-    if strings.Contains(element, "Jyväskylä") {
-      t.Error("Too much data included")
-    }
-  }
+	reader := strings.NewReader(WebPage)
+	elementScraper, err := NewElementScraperFromReader(reader)
+	element := elementScraper.Find(".todayLunch tr") // "table"
+	if err != nil {
+		t.Error("Error:", err)
+	} else {
+		if !strings.Contains(element, "Chicken Vindaloo") {
+			t.Error("Element content is not correct")
+		}
+		if strings.Contains(element, "Jyväskylä") {
+			t.Error("Too much data included")
+		}
+	}
+}
+
+func TestFindElementChildren(t *testing.T) {
+	reader := strings.NewReader(WebPage)
+	elementScraper, err := NewElementScraperFromReader(reader)
+	elements := elementScraper.FindInside(".todayLunch tr", []string{"td.dish", "td.price"})
+	if err != nil {
+		t.Error("Error:", err)
+	} else {
+		if len(elements) != 3 {
+			t.Error("Wrong amount of elements found:", len(elements))
+			return
+		}
+
+		if elements[0]["td.dish"] != "Chicken Vindaloo" {
+			t.Error("First element content is not correct:", elements[0]["td.dish"])
+		}
+		if elements[0]["td.price"] != "9.00€" {
+			t.Error("First element content is not correct:", elements[0]["td.price"])
+		}
+
+		if elements[2]["td.dish"] != "Palak panir" {
+			t.Error("Last element content is not correct:", elements[2]["td.dish"])
+		}
+		if elements[2]["td.price"] != "9.00€" {
+			t.Error("Last element content is not correct:", elements[2]["td.price"])
+		}
+
+	}
 }
